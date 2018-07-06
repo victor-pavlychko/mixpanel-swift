@@ -1000,7 +1000,7 @@ extension MixpanelInstance {
         }
         trackingQueue.async {
             self.networkQueue.async {
-                ProcessInfo.processInfo.performActivity(options: .background, reason: "") {
+                ProcessInfo.processInfo.performActivity(options: .background, reason: "Mixpanel") {
                     if let shouldFlush = self.delegate?.mixpanelWillFlush(self), !shouldFlush {
                         return
                     }
