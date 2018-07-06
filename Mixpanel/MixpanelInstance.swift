@@ -992,24 +992,6 @@ extension MixpanelInstance {
      - parameter completion: an optional completion handler for when the flush has completed.
      */
     open func flush(completion: (() -> Void)? = nil) {
-        let semaphore = DispatchSemaphore(value: 0)
-        if #available(iOSApplicationExtension 8.2, *) {
-            ProcessInfo.processInfo.performExpiringActivity(withReason: "MixpanelInstance.flush(completion:)") { expired in
-                if !expired {
-                    self.flushImpl {
-                        completion?()
-                        semaphore.signal()
-                    }
-                } else {
-                    semaphore.signal()
-                }
-            }
-        } else {
-            flushImpl(completion: completion)
-        }
-    }
-    
-    private func flushImpl(completion: (() -> Void)? = nil) {
         if self.hasOptedOutTracking() {
             if let completion = completion {
                 DispatchQueue.main.async(execute: completion)
@@ -1052,8 +1034,7 @@ extension MixpanelInstance {
                     DispatchQueue.main.async(execute: completion)
                 }
             }
-        }
-    }
+        }}
 }
 
 extension MixpanelInstance {
