@@ -1000,38 +1000,40 @@ extension MixpanelInstance {
         }
         trackingQueue.async {
             self.networkQueue.async {
-                if let shouldFlush = self.delegate?.mixpanelWillFlush(self), !shouldFlush {
-                    return
-                }
-                
-                self.readWriteLock.write {
-                    self.flushEventsQueue = self.eventsQueue
-                    self.people.flushPeopleQueue = self.people.peopleQueue
+                ProcessInfo.processInfo.performActivity(options: .background, reason: "") {
+                    if let shouldFlush = self.delegate?.mixpanelWillFlush(self), !shouldFlush {
+                        return
+                    }
                     
-                    self.eventsQueue.removeAll()
-                    self.people.peopleQueue.removeAll()
-                }
-                
-                #if DECIDE
-                self.flushInstance.flushEventsQueue(&self.flushEventsQueue,
-                                                    automaticEventsEnabled: self.decideInstance.automaticEventsEnabled)
-                #else
-                self.flushInstance.flushEventsQueue(&self.flushEventsQueue,
-                                                    automaticEventsEnabled: false)
-                #endif
-                self.flushInstance.flushPeopleQueue(&self.people.flushPeopleQueue)
-                
-                self.readWriteLock.write {
-                    self.eventsQueue = self.flushEventsQueue + self.eventsQueue
-                    self.people.peopleQueue = self.people.flushPeopleQueue + self.people.peopleQueue
-                    self.flushEventsQueue.removeAll()
-                    self.people.flushPeopleQueue.removeAll()
-                }
-                
-                self.archive()
-                
-                if let completion = completion {
-                    DispatchQueue.main.async(execute: completion)
+                    self.readWriteLock.write {
+                        self.flushEventsQueue = self.eventsQueue
+                        self.people.flushPeopleQueue = self.people.peopleQueue
+                        
+                        self.eventsQueue.removeAll()
+                        self.people.peopleQueue.removeAll()
+                    }
+                    
+                    #if DECIDE
+                    self.flushInstance.flushEventsQueue(&self.flushEventsQueue,
+                                                        automaticEventsEnabled: self.decideInstance.automaticEventsEnabled)
+                    #else
+                    self.flushInstance.flushEventsQueue(&self.flushEventsQueue,
+                                                        automaticEventsEnabled: false)
+                    #endif
+                    self.flushInstance.flushPeopleQueue(&self.people.flushPeopleQueue)
+                    
+                    self.readWriteLock.write {
+                        self.eventsQueue = self.flushEventsQueue + self.eventsQueue
+                        self.people.peopleQueue = self.people.flushPeopleQueue + self.people.peopleQueue
+                        self.flushEventsQueue.removeAll()
+                        self.people.flushPeopleQueue.removeAll()
+                    }
+                    
+                    self.archive()
+                    
+                    if let completion = completion {
+                        DispatchQueue.main.async(execute: completion)
+                    }
                 }
             }
         }}
